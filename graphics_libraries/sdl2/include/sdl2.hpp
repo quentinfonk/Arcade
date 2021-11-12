@@ -31,13 +31,14 @@ public:
     virtual void printText(int x, int y, std::string);
     virtual void clearWindow();
     virtual void refreshWindow();
-    virtual void printWindow();
-    virtual void printTitle(std::string);
-    virtual std::pair<int, int> getWindowSize() const;
     virtual void assetLoader(const std::string);
     std::string clean_emoji(std::string str);
     void printOneSprite(int x, int y, SDL_Surface *surface);
     void reset_time();
+    std::string str_replace_str(std::string str, std::string str2, std::string str3);
+    std::string begin_str(std::string str, char a);
+    int str_in_str(std::string str, std::string str2);
+    size_t strlen_emoji(const std::string& str);
 protected:
 private:
     SDL_Window* win;

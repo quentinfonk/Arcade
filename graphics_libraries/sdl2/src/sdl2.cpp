@@ -19,6 +19,7 @@ void sdl2Lib::init_lib()
 {
     SDL_Init(SDL_INIT_VIDEO);
     TTF_Init();
+    IMG_Init(IMG_INIT_PNG);
     this->win = SDL_CreateWindow("GAME", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1920, 1080, SDL_WINDOW_FULLSCREEN);
     this->renderer = SDL_CreateRenderer(this->win, -1, 0);
     this->block_size = 16;
@@ -28,9 +29,11 @@ void sdl2Lib::init_lib()
 void sdl2Lib::exit_lib()
 {
     this->clearWindow();
+    SDL_DestroyRenderer(this->renderer);
     SDL_DestroyWindow(this->win);
-    SDL_Quit();
     TTF_Quit();
+    IMG_Quit();
+    SDL_Quit();
 }
 
 int sdl2Lib::keyPressed()
@@ -99,12 +102,12 @@ int sdl2Lib::keyPressed()
         if (keys[SDL_SCANCODE_X])
             return 'x';
         if (keys[SDL_SCANCODE_Z])
-            return 'W';
+            return 'w';
     }
     return (-1);
 }
 
-std::string str_replace_str(std::string str, std::string str2, std::string str3)
+std::string sdl2Lib::str_replace_str(std::string str, std::string str2, std::string str3)
 {
     size_t a = 0;
     size_t b = 0;
@@ -152,7 +155,11 @@ void sdl2Lib::printMap(std::vector<std::string> vs)
 
     for (size_t i = 0; i != vs.size(); i++) {
         for (auto m = this->sprite.begin() ; m != this->sprite.end() ; m++) {
-            vs[i] = str_replace_str(vs[i], m->first, spe_char);
+            if (m->second->w > 25) {
+                vs[i] = str_replace_str(vs[i], m->first, spe_char + " ");
+            } else {
+                vs[i] = str_replace_str(vs[i], m->first, spe_char);
+            }
             spe_char[0]++;
         }
         spe_char = "0";
@@ -160,7 +167,10 @@ void sdl2Lib::printMap(std::vector<std::string> vs)
             for (size_t h = 0 ; h != vs[i].size() ; h++, tmp = "") {
                 if (vs[i][h] == spe_char[0]) {
                     tmp += m->first;
-                    dstrect = {x, y, this->block_size, this->block_size};
+                    if (m->second->w > 25)
+                        dstrect = {x, y, this->block_size * 2, this->block_size};
+                    else
+                        dstrect = {x, y, this->block_size, this->block_size};
                     tex = SDL_CreateTextureFromSurface(renderer, m->second);
                     SDL_RenderCopy(renderer, tex, NULL, &dstrect);
                     SDL_DestroyTexture(tex);
@@ -173,9 +183,8 @@ void sdl2Lib::printMap(std::vector<std::string> vs)
         spe_char = "0";
         y = y + this->block_size;
     }
-    SDL_RenderPresent(renderer);
 }
-std::string begin_str(std::string str, char a)
+std::string sdl2Lib::begin_str(std::string str, char a)
 {
     size_t b = 0;
     std::string str2;
@@ -193,7 +202,7 @@ std::string begin_str(std::string str, char a)
     return str2;
 }
 
-int str_in_str(std::string str, std::string str2)
+int sdl2Lib::str_in_str(std::string str, std::string str2)
 {
     size_t a = 0;
     size_t b = 0;
@@ -220,7 +229,7 @@ int str_in_str(std::string str, std::string str2)
     return result;
 }
 
-size_t strlen_emoji(const std::string& str)
+size_t sdl2Lib::strlen_emoji(const std::string& str)
 {
     size_t length = 0;
     size_t emoji = 0;
@@ -262,7 +271,6 @@ void sdl2Lib::printSelectedButton(int x, int y, std::string text)
         this->printOneSprite(x + (int)i + 1, y + 2, this->bouton_sprite["━"]);
         this->printOneSprite(x + (int)i + 1, y, this->bouton_sprite["━"]);
     }
-    SDL_RenderPresent(renderer);
     printText(x + 2, y + 1, text);
 }
 
@@ -281,7 +289,6 @@ void sdl2Lib::printButton(int x, int y, std::string text)
         this->printOneSprite(x + (int)i + 1, y + 2, this->bouton_sprite["┄"]);
         this->printOneSprite(x + (int)i + 1, y, this->bouton_sprite["┄"]);
     }
-    SDL_RenderPresent(renderer);
     printText(x + 2, y + 1, text);
 }
 
@@ -310,31 +317,17 @@ void sdl2Lib::printText(int x, int y, std::string string)
     SDL_Rect dstrect = {x * this->block_size, y * this->block_size - 3, a, b};
     SDL_RenderCopy(renderer, texture, NULL, &dstrect);
     SDL_DestroyTexture(texture);
-    SDL_RenderPresent(renderer);
 }
 
 void sdl2Lib::clearWindow()
 {
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(this->renderer);
 }
 
 void sdl2Lib::refreshWindow()
 {
-
-}
-void sdl2Lib::printWindow()
-{
-
-}
-void sdl2Lib::printTitle(std::string)
-{
-
-}
-
-std::pair<int, int> sdl2Lib::getWindowSize() const
-{
-    std::pair<int, int> test;
-    return test;
+    SDL_RenderPresent(renderer);
 }
 
 void sdl2Lib::assetLoader(const std::string str)

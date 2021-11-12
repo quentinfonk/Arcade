@@ -11,6 +11,7 @@ Arcade::Arcade()
 {
     get_shared_libs();
     this->player_name = "";
+    this->my_exit = false;
 }
 
 Arcade::~Arcade()
@@ -32,6 +33,25 @@ IGraphicLib *Arcade::open_lib(const char *lib_name)
         std::exit(84);
     }
     pMaker = (MakerLib)mkr;
+    lib = pMaker();
+    return (lib);
+}
+
+IGame *Arcade::open_lib_game(const char *lib_name)
+{
+    MakerGame pMaker;
+    this->game_handle = dlopen(lib_name, RTLD_LAZY);
+    if(this->game_handle == NULL) {
+        std::cerr << "dlopen : "<< dlerror() << std::endl; 
+        std::exit(84);
+    }
+    void *mkr = dlsym(this->game_handle, "MakeGame");
+    IGame *lib = NULL;
+    if (mkr == NULL) {
+        std::cerr << "dlsym : " << dlerror() << std::endl;
+        std::exit(84);
+    }
+    pMaker = (MakerGame)mkr;
     lib = pMaker();
     return (lib);
 }
@@ -73,9 +93,15 @@ void Arcade::launch_menu(IGraphicLib *glib)
 
     this->init_bouton();
     while (1) {
+        this->launch_game(glib, input);
+        if (this->my_exit == true)
+            return;
         glib = this->switch_lib(glib, input);
+        if (this->my_exit == true)
+            return;
         input = glib->keyPressed();
         if (std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now() - refresh).count() > 10000000) {
+            glib->clearWindow();
             glib->printMap(map_menu);
             this->print_bouton(glib);
             glib->printText(44, 1, "🎮 Arcade 🎮");
@@ -83,26 +109,88 @@ void Arcade::launch_menu(IGraphicLib *glib)
             glib->printText(24, 3, "👾 Games 👾");
             glib->printText(61, 3, "🏆 Leaderboard 🏆");
             this->print_leaderboard(glib);
+            glib->refreshWindow();
             refresh = std::chrono::high_resolution_clock::now();
         }
         this->gest_name(input);
         this->gest_bouton(input);
         this->gest_input(glib, input);
+        if (this->my_exit == true)
+            return;
+    }
+}
+
+void Arcade::gest_leaderboard(std::string path, std::string name, int score)
+{
+    std::multimap<int, std::string> board;
+    std::ifstream file(path + "/leaderboard");
+    std::string line = "";
+    char c;
+    int i = 0;
+
+    board.insert({score * -1, name});
+    name = "";
+    if (file) {
+        while (file.get(c)) {
+            if (c == '|') {
+                name = line;
+                line = "";
+                continue;
+            }
+            if (c == '\n') {
+                board.insert({std::stoi(line) * -1, name});
+                line = "";
+                continue;
+            }
+            line += c;
+        }
+    }
+    std::ofstream flux(path + "/leaderboard");
+
+    if (flux) {
+        for (auto m = board.begin() ; m != board.end() && i != 3 ; m++) {
+            flux << m->second << "|" << m->first * -1 << std::endl;
+            i++;
+        }
+    }
+}
+
+void Arcade::launch_game(IGraphicLib *glib, int input)
+{
+    if (input != 10)
+        return;
+    IGame *game = NULL;
+    int score = 0;
+    for (size_t i = 0 ; i != this->bouton[1].size() ; i++) {
+        if (this->bouton[1][i].first == 1) {
+            game = this->open_lib_game(this->games[i].c_str());
+            glib->assetLoader("assets/" + this->games[i].substr(11, this->games[i].find(".so") - 11));
+            score = game->launchGame(glib);
+            dlclose(this->game_handle);
+            delete (game);
+            if (score == -2 || this->player_name == "")
+                return;
+            if (score == -1) {
+                glib->exit_lib();
+                this->my_exit = true;
+                return;
+            }
+            this->gest_leaderboard("assets/" + this->games[i].substr(11, this->games[i].find(".so") - 11), this->player_name, score);
+            return;
+        }
     }
 }
 
 IGraphicLib *Arcade::switch_lib(IGraphicLib *glib, int input)
 {
-    if ((int)input != 10)
+    if (input != 10)
         return (glib);
-    std::string tmp = "";
     for (size_t i = 0 ; i != this->bouton[0].size() ; i++) {
         if (this->bouton[0][i].first == 1) {
             glib->exit_lib();
             delete (glib);
             dlclose(this->handle);
-            tmp = "lib/arcade_" + this->bouton[0][i].second + ".so";
-            glib = open_lib(tmp.c_str());
+            glib = open_lib(this->libs[i].c_str());
             glib->init_lib();
             glib->assetLoader("assets/arcade");
             return (glib);
@@ -115,7 +203,7 @@ void Arcade::gest_input(IGraphicLib *glib, int input)
 {
     if (input == 'q' && this->bouton[2][0].first != 1) {
         glib->exit_lib();
-        std::exit(0);
+        this->my_exit = true;
     }
 }
 

@@ -39,13 +39,13 @@ class SfmlLib : public IGraphicLib
         virtual void printText(int x, int y, std::string);
         virtual void clearWindow();
         virtual void refreshWindow();
-        virtual void printWindow();
-        virtual void printTitle(std::string);
-        virtual std::pair<int, int> getWindowSize() const;
         virtual void assetLoader(const std::string);
         std::string clean_emoji(std::string str);
         std::map<std::string, sf::Text> text;
         void printOneSprite(int x, int y, sf::Texture texture);
+        int str_in_str(std::string str, std::string str2);
+        std::string str_replace_str(std::string str, std::string str2, std::string str3);
+        size_t strlen_emoji(const std::string& str);
 
     protected:
     private:

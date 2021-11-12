@@ -53,7 +53,7 @@ void GraphicLib::printMap(std::vector<std::string> map)
 
 }
 
-int str_in_str(std::string str, std::string str2)
+int GraphicLib::str_in_str(std::string str, std::string str2)
 {
     size_t a = 0;
     size_t b = 0;
@@ -80,7 +80,7 @@ int str_in_str(std::string str, std::string str2)
     return result;
 }
 
-size_t strlen_emoji(const std::string& str)
+size_t GraphicLib::strlen_emoji(const std::string& str)
 {
     size_t length = 0;
     size_t emoji = 0;
@@ -140,28 +140,12 @@ void GraphicLib::printText(int x, int y, std::string str)
 
 void GraphicLib::clearWindow()
 {
-
+    clear();
 }
 
 void GraphicLib::refreshWindow()
 {
-
-}
-
-void GraphicLib::printWindow()
-{
-
-}
-
-void GraphicLib::printTitle(std::string)
-{
-
-}
-
-std::pair<int, int> GraphicLib::getWindowSize() const
-{
-    std::pair<int, int> tmp = {0, 0};
-    return tmp;
+    refresh();
 }
 
 void GraphicLib::assetLoader(const std::string)

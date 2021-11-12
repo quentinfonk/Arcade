@@ -11,6 +11,7 @@
 #include <dlfcn.h>
 #include <iostream>
 #include "IGraphicLib.hpp"
+#include "IGame.hpp"
 #include <vector>
 #include <dirent.h>
 #include <string.h>
@@ -42,6 +43,9 @@ public:
     void gest_name(int input);
     IGraphicLib *switch_lib(IGraphicLib *glib, int input);
     IGraphicLib *open_lib(const char *lib_name);
+    IGame *open_lib_game(const char *lib_name);
+    void launch_game(IGraphicLib *glib, int input);
+    void gest_leaderboard(std::string path, std::string name, int score);
 
 private:
     std::vector<std::string> games;
@@ -49,6 +53,8 @@ private:
     std::vector<std::vector<std::pair<bool, std::string>>> bouton;
     std::string player_name;
     void *handle;
+    void *game_handle;
+    bool my_exit;
 };
 
 

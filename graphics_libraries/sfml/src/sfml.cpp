@@ -17,7 +17,7 @@ extern "C"
 
 void SfmlLib::init_lib()
 {
-    this->_window.create(sf::VideoMode(1920, 1080, 32), "SFML Window", sf::Style::Fullscreen);
+    this->_window.create(sf::VideoMode(1920, 1080, 32), "Game", sf::Style::Fullscreen);
     this->block_size = 16;
     this->clearWindow();
 }
@@ -104,7 +104,7 @@ int SfmlLib::keyPressed()
     return -1;
 }
 
-int str_in_str(std::string str, std::string str2)
+int SfmlLib::str_in_str(std::string str, std::string str2)
 {
     size_t a = 0;
     size_t b = 0;
@@ -131,7 +131,7 @@ int str_in_str(std::string str, std::string str2)
     return result;
 }
 
-std::string str_replace_str(std::string str, std::string str2, std::string str3)
+std::string SfmlLib::str_replace_str(std::string str, std::string str2, std::string str3)
 {
     size_t a = 0;
     size_t b = 0;
@@ -170,26 +170,37 @@ void SfmlLib::printMap(std::vector<std::string> vs)
 {
     int x = 0;
     int y = 0;
-    std::string tmp = "";
     std::string tmp2 = "";
     std::string spe_char = "0";
     sf::Texture texture;
     sf::Sprite sprite;
-    
+    sf::Sprite spe_sprite;
+
     for (size_t i = 0; i != vs.size(); i++) {
         for (auto m = this->sprite.begin() ; m != this->sprite.end() ; m++) {
-            vs[i] = str_replace_str(vs[i], m->first, spe_char);
+            if (m->second.getSize().x > 25) {
+                vs[i] = str_replace_str(vs[i], m->first, spe_char + " ");
+            } else {
+                vs[i] = str_replace_str(vs[i], m->first, spe_char);
+            }
             spe_char[0]++;
         }
         spe_char = "0";
         for (auto m = this->sprite.begin() ; m != this->sprite.end() ; m++) {
-           for (size_t h = 0 ; h != vs[i].size() ; h++, tmp = "") {
+           for (size_t h = 0 ; h != vs[i].size() ; h++) {
                 if (vs[i][h] == spe_char[0]) {
-                    tmp += m->first;
-                    sprite.setScale(0.64, 0.64);
-                    sprite.setTexture(m->second);
-                    sprite.setPosition(x, y);
-                    this->_window.draw(sprite);
+                    if (m->second.getSize().x > 25) {
+                        spe_sprite.setTexture(m->second);
+                        spe_sprite.setScale(0.64, 0.64);
+                        spe_sprite.setPosition(x, y);
+                        this->_window.draw(spe_sprite);
+                    } else {
+                        sprite.setTexture(m->second);
+                        sprite.setScale(0.64, 0.64);
+                        sprite.setPosition(x, y);
+                        this->_window.draw(sprite);
+                    }
+                    
                 }
                 x = x + this->block_size;
             }
@@ -199,10 +210,9 @@ void SfmlLib::printMap(std::vector<std::string> vs)
         spe_char = "0";
         y = y + this->block_size;
     }
-    this->_window.display();
 }
 
-size_t strlen_emoji(const std::string& str)
+size_t SfmlLib::strlen_emoji(const std::string& str)
 {
     size_t length = 0;
     size_t emoji = 0;
@@ -305,21 +315,7 @@ void SfmlLib::refreshWindow()
 {
     this->_window.display();
 }
-void SfmlLib::printWindow()
-{
-    this->_window.display();
-}
 
-void SfmlLib::printTitle(std::string text)
-{
-    (void)text;
-}
-
-std::pair<int, int> SfmlLib::getWindowSize() const
-{
-    std::pair<int, int> test;
-    return test;
-}
 std::string begin_str(std::string str, char a)
 {
     size_t b = 0;
